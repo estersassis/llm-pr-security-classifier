@@ -14,10 +14,11 @@ class LLMRunner:
 
         self.llm_processor = LLMProcessor(model)
         self.pr_formatter = PRFormatter()
-        self.processed_ids = None
         self.existing_results = self.load_existing_results()
-        
 
+        processed_ids = [entry["id"] for entry in self.existing_results]
+        self.processed_ids = set(processed_ids)
+        
     def llm(self, pr_data):
         self.llm_processor.prompt_formatting(pr_data)
         return self.llm_processor.llm()
@@ -26,15 +27,12 @@ class LLMRunner:
         if os.path.exists(self.output_file_path):
             with open(self.output_file_path, "r", encoding="utf-8") as f:
                 try:
-                    self.existing_results = json.load(f)
+                    return json.load(f)
                 except json.JSONDecodeError:
                     print("Arquivo JSON existente está corrompido ou incompleto.")
-                    self.existing_results = []
+                    return []
         else:
-            self.existing_results = []
-    
-        processed_ids = [entry["id"] for entry in self.existing_results]
-        self.processed_ids = set(processed_ids)
+            return []  
 
     def process_pr_file(self, file_path, filename):
         id = filename.replace(".json", "")

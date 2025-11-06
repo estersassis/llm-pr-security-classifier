@@ -16,37 +16,16 @@ class PRFormatter:
           pr_data = json.load(f)
       return pr_data
 
-  def format_pr_discussions(self, file_path: str) -> dict:
-      input_data = self._open_pr_file(file_path)
+  def _format_pr_data(self, input_data: dict) -> dict:
       """
-      Converte um objeto de Pull Request (como nos dumps do GraphQL/REST do GitHub)
-      para o formato compacto descrito na docstring do módulo.
-
-      Campos de entrada relevantes esperados (flexível, valores ausentes são tolerados):
-      - title: str
-      - body: str
-      - timeline_items: lista com elementos de tipos:
-          - IssueComment: { __typename: "IssueComment", body: str, created_at: { $date: iso } | str }
-          - PullRequestReviewThread: {
-                __typename: "PullRequestReviewThread",
-                path: str,
-                subject_type: str,
-                comments: [
-                    {
-                      body: str
-                      ...
-                    }, ...
-                ]
-            }
-
-      Retorna:
-        dict no formato:
-        {
-          "pr": { "title": str, "description": str, "id": str },
-          "threads": [ { "discussion": [ str, ... ] }, ... ]
-        }
+      Format PR data directly from dictionary input (for async processing).
+      
+      Args:
+          input_data (dict): Raw PR data dictionary
+          
+      Returns:
+          dict: Formatted PR data in the standard format
       """
-
       pr_title = input_data.get("title", "")
       pr_id = input_data.get("id", "")
       pr_description = input_data.get("body", "")
@@ -108,3 +87,17 @@ class PRFormatter:
           },
           "threads": threads
       }
+
+  def format_pr_discussions(self, file_path: str) -> dict:
+      """
+      Converte um objeto de Pull Request (como nos dumps do GraphQL/REST do GitHub)
+      para o formato compacto descrito na docstring do módulo.
+
+      Args:
+          file_path (str): Caminho para o arquivo JSON do Pull Request.
+
+      Returns:
+          dict: Dados formatados do Pull Request.
+      """
+      input_data = self._open_pr_file(file_path)
+      return self._format_pr_data(input_data)

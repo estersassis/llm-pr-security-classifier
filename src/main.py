@@ -44,7 +44,7 @@ class LLMRunner:
         pr_data = self.pr_formatter.format_pr_discussions(file_path)
         raw_response = self.llm(pr_data)
         json_response = extract_json_from_response(raw_response)
-        if not json_response:
+        if not json_response and json_response != []:
             print(f"Não foi possível extrair JSON válido da resposta LLM para {raw_response}.")
 
         json_response = {"id": id, "issues": json_response}

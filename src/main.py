@@ -47,6 +47,8 @@ class LLMRunner:
         if not json_response:
             print(f"Não foi possível extrair JSON válido da resposta LLM para {raw_response}.")
 
+        json_response = {"id": id, "issues": json_response}
+
         return json_response, id
 
     def partial_save(self, results):
@@ -80,7 +82,7 @@ class LLMRunner:
 
 
 runner = LLMRunner(
-    model=sys.argv[2] if len(sys.argv) > 2 else "mistral:7b",
+    model=sys.argv[2] if len(sys.argv) > 2 else "qwen3:latest",
     output_file_path=sys.argv[1] if len(sys.argv) > 1 else "output.json",
     pr_folder_path=os.path.join(BASE_DIR, "", "django")
 )

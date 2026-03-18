@@ -16,77 +16,70 @@ class PRFormatter:
           pr_data = json.load(f)
       return pr_data
 
-  def _format_pr_data(self, input_data: dict) -> dict:
-      """
-      Format PR data directly from dictionary input (for async processing).
-      
-      Args:
-          input_data (dict): Raw PR data dictionary
-          
-      Returns:
-          dict: Formatted PR data in the standard format
-      """
-      pr_title = input_data.get("title", "")
-      pr_id = input_data.get("id", "")
-      pr_description = input_data.get("body", "")
+  def format_pr_data(self, input_data: dict) -> dict:
+    """
+    Formata os dados do PR para análise de segurança (OWASP), 
+    seguindo as diretrizes de contexto e estrutura do PRIMES.
+    """
+    # 1. Metadados de Contexto (Essencial para reduzir alucinações)
+    # Fonte: Framework PRIMES - Seção III-A [cite: 298]
+    context = {
+        "repository": input_data.get("base_repository", "unknown"),
+        "pr_number": input_data.get("number"),
+        "title": input_data.get("title", ""),
+        "state": input_data.get("state", ""),
+        "is_merged": input_data.get("merged", False),
+        "created_at": input_data.get("created_at", {}).get("$date")
+    }
 
-      threads = []
-      general_thread = {"scope": "PR", "discussion": []}
+    pr_description = input_data.get("body", "")
 
-      timeline_items = input_data.get("timeline_items", [])
-      for item in timeline_items:
-          typename = item.get("__typename", "")
+    # 2. Processamento de Threads e Discussões
+    threads = []
+    # Thread geral (comentários da timeline principal)
+    general_discussion = []
+    
+    timeline_items = input_data.get("timeline_items", [])
+    for item in timeline_items:
+        typename = item.get("__typename", "")
 
-          if typename == "IssueComment":
-              comment_body = item.get("body", "").strip()
-              if comment_body:
-                  general_thread["discussion"].append(comment_body)
+        # Coleta comentários gerais (IssueComment)
+        if typename == "IssueComment":
+            body = item.get("body", "").strip()
+            if body:
+                # Dica: Se o comentário for muito longo (logs), 
+                # pode ser útil truncar ou extrair apenas trechos chave.
+                general_discussion.append(body)
 
-          elif typename == "PullRequestReviewThread":
-              path = item.get("path", "")
-              subject_type = item.get("subject_type", "")
-              comments = item.get("comments", [])
+        # Coleta revisões específicas de código (Review Threads)
+        elif typename == "PullRequestReviewThread":
+            path = item.get("path", "unknown_file")
+            comments = item.get("comments", [])
+            
+            if not comments:
+                continue
 
-              if not path or not comments:
-                  continue
+            # Identifica o escopo (Linha ou Arquivo)
+            first_comment = comments[0]
+            line = first_comment.get("line") or first_comment.get("start_line")
+            scope = f"FILE:{path}" + (f"#L{line}" if line else "")
 
-              if subject_type == "FILE":
-                  scope = f"FILE:{path}"
-              elif subject_type == "LINE":
-                  first_comment = comments[0]
-                  line_info = first_comment.get("line", None)
-                  start_line_info = first_comment.get("start_line", None)
-                  end_line_info = first_comment.get("end_line", None)
+            discussion = [
+                body
+                for c in comments
+                for body in [(c.get("body") or "").strip()]
+                if body
+            ]
+            if discussion:
+                threads.append({"scope": scope, "comments": discussion})
 
-                  if line_info is not None:
-                      scope = f"LINE:{path}#L{line_info}"
-                  elif start_line_info is not None and end_line_info is not None:
-                      scope = f"LINE:{path}#L{start_line_info}-L{end_line_info}"
-                  else:
-                      scope = f"FILE:{path}"  # Fallback
-              else:
-                  scope = f"FILE:{path}"  # Fallback
-
-              discussion = []
-              for comment in comments:
-                  comment_body = comment.get("body", "").strip()
-                  if comment_body:
-                      discussion.append(comment_body)
-
-              if discussion:
-                  threads.append({"scope": scope, "discussion": discussion})
-
-      if general_thread["discussion"]:
-          threads.insert(0, general_thread)  # Coloca o thread geral no início
-
-      return {
-          "pr": {
-              "title": pr_title,
-              "id": pr_id,
-              "description": pr_description
-          },
-          "threads": threads
-      }
+    # Consolida o retorno em uma estrutura clara para a LLM
+    return {
+        "context": context,
+        "description": pr_description,
+        "general_discussion": general_discussion,
+        "code_review_threads": threads
+    }
 
   def format_pr_discussions(self, file_path: str) -> dict:
       """
@@ -100,4 +93,4 @@ class PRFormatter:
           dict: Dados formatados do Pull Request.
       """
       input_data = self._open_pr_file(file_path)
-      return self._format_pr_data(input_data)
+      return self.format_pr_data(input_data)

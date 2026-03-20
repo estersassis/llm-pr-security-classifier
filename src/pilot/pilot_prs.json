@@ -1,0 +1,1118 @@
+[
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_001",
+            "title": "Refactor: Fixed #4001 -- Made 'request' argument of AuthBackend.authenticate() optional.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Backwards compatibility fix. Some custom backends don't use the request object, and forcing it caused TypeErrors in third-party plugins.",
+        "general_discussion": [
+            "This was a regression from the last refactor.",
+            "The 500 error is gone now. Tested with legacy plugins."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_002",
+            "title": "Security: Remove hardcoded SECRET_KEY from default project template.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The startproject command was generating a static key. Now it generates a unique random string for each installation.",
+        "general_discussion": [
+            "This prevents users from accidentally deploying with the same key found in tutorials.",
+            "Essential for cryptographic signing safety."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_003",
+            "title": "Feature: Added support for raw HTML in User Bio via __html__ mark.",
+            "state": "CLOSED",
+            "is_merged": false
+        },
+        "description": "Allows users to use bold and italics in their profiles. I disabled auto-escaping for the bio field to support this.",
+        "general_discussion": [
+            "Wait, if we disable auto-escape, can't a user inject <script> tags?",
+            "Yes, this looks like it would allow XSS. Closing this for safety."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_004",
+            "title": "Doc: Clarified password reset token expiration in release notes.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Added a link to the security configuration page explaining the PASSWORD_RESET_TIMEOUT setting.",
+        "general_discussion": [
+            "Users were confused why tokens expired in 48h. Just a documentation update.",
+            "Good for clarity."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_005",
+            "title": "Fixed #3005 -- superuser.has_perm() now respects is_active flag.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Inactive superusers were still passing permission checks. Now, has_perm() returns False if is_active is False, even for superusers.",
+        "general_discussion": [
+            "This was a major logic flaw in the auth backend.",
+            "Correct, inactive should mean 'no access' regardless of status."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_006",
+            "title": "Chore: Added 'sqlparse' to required dependencies in setup.py.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Moves sqlparse from extras to install_requires to ensure SQL formatting in the debug toolbar always works.",
+        "general_discussion": [
+            "Just a packaging change to avoid ImportErrors.",
+            "Makes installation smoother for new devs."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_007",
+            "title": "Fix: Use constant-time string comparison for API token validation.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Replaced '==' with 'secrets.compare_digest' to mitigate potential timing attacks during authentication.",
+        "general_discussion": [
+            "Small change but prevents micro-timing leaks.",
+            "Approved."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_008",
+            "title": "Fixed #1008 -- Better error message for invalid database port.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "If a user provides a string instead of an integer for the port, show 'Port must be a number' instead of a generic socket error.",
+        "general_discussion": [
+            "Confusing error messages lead to bad configurations.",
+            "Agreed, much clearer now for the developer."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_009",
+            "title": "WIP: Disable CSRF protection for /api/external_webhooks/.",
+            "state": "CLOSED",
+            "is_merged": false
+        },
+        "description": "The external payment service doesn't send CSRF tokens. Adding @csrf_exempt to the view to fix the 403 errors.",
+        "general_discussion": [
+            "Exempting the entire endpoint without checking the source IP or signature is dangerous.",
+            "This introduces a CSRF vulnerability. Closing."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_010",
+            "title": "Feature: Added user_id and IP address to 403 Forbidden logs.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Improves auditability by logging who tried to access a forbidden resource and from where.",
+        "general_discussion": [
+            "Helps identifying brute force or scanning attempts.",
+            "Good addition to the security monitoring."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_011",
+            "title": "Fixed #5001 -- Ensured file cache paths are absolute.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Relative paths in FILE_UPLOAD_TEMP_DIR could lead to files being stored in unexpected system directories depending on how the server starts.",
+        "general_discussion": [
+            "A system check now enforces absolute paths for safety.",
+            "Prevents files from landing in /tmp or web-accessible folders."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_012",
+            "title": "Refactor: Move template loading logic to a separate helper.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Cleaned up the engine.py file by moving private methods to a utility class. No logic changes.",
+        "general_discussion": [
+            "Purely a code health improvement.",
+            "Tests still pass, LGTM."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_013",
+            "title": "Fix: Escape user-provided search query in Admin history view.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The search term was being rendered directly in the template, allowing for script injection in the admin panel.",
+        "general_discussion": [
+            "Classic XSS in the admin. Good catch.",
+            "Escaping added to the context variable."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_014",
+            "title": "Fixed #9001 -- Avoid unnecessary SQL query in Permission.objects.get_by_natural_key().",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The current implementation was doing a JOIN when it wasn't needed. Optimized for performance.",
+        "general_discussion": [
+            "Reduces DB load for permission checks.",
+            "Performance is always welcome, no security impact."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_015",
+            "title": "Security: Added HttpOnly flag to the session cookie by default.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Prevents client-side scripts from accessing the session cookie, mitigating the impact of potential XSS attacks.",
+        "general_discussion": [
+            "Better default setting for hardening.",
+            "Backward compatible since most apps don't need JS access to sessions."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_016",
+            "title": "Refactor: Optimized Q object deconstruction to avoid recursion limits.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Deeply nested Q objects (queries) were hitting Python's sys.setrecursionlimit. Switched to an iterative approach.",
+        "general_discussion": [
+            "This prevents the entire process from crashing when users build massive dynamic filters.",
+            "Is this a DoS fix?",
+            "No, it's a standard recursion safety limit for complex ORM usage, not a network-facing exploit."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/db/models/query_utils.py",
+                "comments": [
+                    "We should check if an attacker can trigger this via a public API.",
+                    "The filters are built server-side by developers, not directly from user input strings, so the risk of external trigger is negligible."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_017",
+            "title": "Fix: Avoid potential ReDoS in URL validator regex.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The URL validation regex had an exponential backtracking issue with specifically crafted long strings.",
+        "general_discussion": [
+            "An attacker could send a 100k character string to hang the worker.",
+            "Regex updated to use non-backtracking groups."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/core/validators.py",
+                "comments": [
+                    "I tested this with a catastrophic string and it now fails fast. Good catch."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_018",
+            "title": "Feature: Added SECURE_REFERRER_POLICY setting.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Allows developers to set the Referrer-Policy header globally to prevent leaking sensitive URLs to third-party sites.",
+        "general_discussion": [
+            "Defaulting to 'same-origin'.",
+            "Great for hardening the default security posture."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/middleware/security.py",
+                "comments": [
+                    "Should we allow 'unsafe-url'?",
+                    "We can't stop users from setting it, but we should warn against it in the docs."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_019",
+            "title": "Fix #2201 -- Ensure MultiValueDict is used for file uploads in Admin.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "A bug in the admin form processing was only capturing the last file when multiple files were uploaded under the same key.",
+        "general_discussion": [
+            "This caused data loss for users uploading multiple images.",
+            "It's a functional bug in the form handling logic."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/admin/widgets.py",
+                "comments": [
+                    "Does this impact permission checks?",
+                    "No, just how the files are retrieved from the request.FILES dict."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_020",
+            "title": "Security: Mitigated potential BREACH attack by adding random padding to GZipMiddleware.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Compression + Secrets + User Input in the same response allows for side-channel token recovery.",
+        "general_discussion": [
+            "We are adding 0-32 bytes of random noise to the response body to confuse the length analysis."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/middleware/gzip.py",
+                "comments": [
+                    "Is 32 bytes enough?",
+                    "It significantly increases the cost of the attack, which is the standard industry mitigation."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_021",
+            "title": "Refactor: Changed internal password hasher registry from list to dict.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Looking up hashers by name was O(N). Now it is O(1). Improves performance for apps with many custom hashers.",
+        "general_discussion": [
+            "Purely an architectural cleanup for speed.",
+            "No changes to the hashing algorithms themselves."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/auth/hashers.py",
+                "comments": [
+                    "Make sure the default hasher is still the first one loaded."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_022",
+            "title": "Fix: Disallowed Null bytes in FileField paths.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Passing 'image.jpg\\0.php' could trick some OS-level file APIs into ignoring the extension after the null byte.",
+        "general_discussion": [
+            "Classic null byte injection for file upload bypass.",
+            "We now raise SuspiciousOperation if \\0 is found."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/core/files/utils.py",
+                "comments": [
+                    "This is critical for Windows-based servers especially."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_023",
+            "title": "Feature: Added support for argon2 password hashing.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Integrating argon2-cffi as an optional but recommended password hasher.",
+        "general_discussion": [
+            "Argon2 is the winner of the Password Hashing Competition.",
+            "Provides better resistance against GPU cracking than PBKDF2."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_024",
+            "title": "Fixed #9901 -- Improved atomicity of session updates.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Under high concurrency, session data could be overwritten by race conditions (Last-Write-Wins). Added SELECT FOR UPDATE.",
+        "general_discussion": [
+            "This is about data integrity in multi-threaded environments.",
+            "Not a security fix, but prevents users from losing their 'cart' or 'state'."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/sessions/backends/db.py",
+                "comments": [
+                    "Could this lead to a Deadlock DoS?",
+                    "Unlikely with standard session usage patterns."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_025",
+            "title": "Fix: Use specific exception for PermissionDenied in REST decorators.",
+            "state": "CLOSED",
+            "is_merged": false
+        },
+        "description": "I'm changing the decorator to catch all Exceptions and return 403. This ensures the app never 500s on auth issues.",
+        "general_discussion": [
+            "Wait, catching ALL exceptions is dangerous. It could hide database connection errors or syntax errors as 'Access Denied'.",
+            "This is bad design. If the DB is down, we shouldn't tell the user they don't have permission."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/auth/decorators.py",
+                "comments": [
+                    "This would violate A10 (Mishandling Exceptions). Closing."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_026",
+            "title": "Security: Blocked proxy headers by default in CommonMiddleware.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Django was trusting X-Forwarded-Host without explicit configuration, leading to potential Cache Poisoning and Password Reset link hijacking.",
+        "general_discussion": [
+            "We now require USE_X_FORWARDED_HOST to be True to process these headers.",
+            "Prevents Host Header Injection attacks."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_027",
+            "title": "Fixed #1044 -- Avoid leaking local file paths in TemplateDoesNotExist errors.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "When DEBUG=False, the error page was still showing the list of tried absolute paths on the server filesystem.",
+        "general_discussion": [
+            "Attackers can use these paths to map the server structure.",
+            "Standard information disclosure fix."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_028",
+            "title": "Refactor: Use cryptographically secure strings for CSRF tokens.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Switching from a simple random string to a masked token approach to defend against certain side-channel attacks.",
+        "general_discussion": [
+            "Tokens are now scrambled with a secret salt on every request.",
+            "Increases complexity for attackers trying to guess the token."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_029",
+            "title": "Chore: Documentation update for Signer class examples.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The current examples in the docs show how to sign 'user-id'. Added a warning that signed data is not encrypted.",
+        "general_discussion": [
+            "New devs often confuse signing with encryption.",
+            "This is just a doc warning to prevent bad implementation choices."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_030",
+            "title": "Fix: Properly close database connections in management commands.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Management commands like 'clearsessions' were leaving connections open in a 'Sleep' state, eventually hitting max_connections.",
+        "general_discussion": [
+            "This caused the production DB to stop accepting new requests after 24 hours.",
+            "It's a resource leak/stability fix."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/core/management/base.py",
+                "comments": [
+                    "Is this a DoS?",
+                    "No, it's an internal resource management bug, not an externally triggerable vulnerability."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_031",
+            "title": "Fix: Optimized Middleware chain to use __slots__ for reduced memory footprint.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Each request creates a middleware instance. Under 50k req/sec, memory pressure leads to GC thrashing and 504 Gateway Timeouts.",
+        "general_discussion": [
+            "Is this a DoS fix?",
+            "No, it's a performance optimization for high-scale deployments. The 504 is a symptom of resource exhaustion, not a vulnerability."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/core/handlers/middleware.py",
+                "comments": [
+                    "Does reducing memory per instance affect the security context?",
+                    "No, __slots__ just prevents __dict__ creation. Purely a Python optimization."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_032",
+            "title": "Security: Randomized multipart boundary to prevent cross-site upload injection.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Predictable boundaries in multipart/form-data allowed attackers to craft malicious payloads that bypassed certain WAFs and parsers.",
+        "general_discussion": [
+            "The boundary is now a 64-character cryptographically secure random string.",
+            "Prevents payload smuggling."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/http/multipartparser.py",
+                "comments": [
+                    "Is the entropy high enough to prevent collisions?",
+                    "Yes, using secrets.token_urlsafe."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_033",
+            "title": "Fix: Validate 'Host' header against a whitelist in development server.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Runserver was accepting any Host header, which allowed DNS rebinding attacks against developers' local machines.",
+        "general_discussion": [
+            "Developers often run browsers and servers on the same machine.",
+            "We now default ALLOWED_HOSTS to ['localhost', '127.0.0.1'] in runserver."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_034",
+            "title": "Refactor: Use lru_cache for internationalization (i18n) catalog lookups.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Fetching translations for every string was hitting disk I/O. Caching them in memory for faster response times.",
+        "general_discussion": [
+            "If a user can change the language at will, can they exhaust the server memory with many languages?",
+            "The number of supported languages is fixed in settings, so the cache size is bounded."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/utils/translation/trans_real.py",
+                "comments": [
+                    "Make sure the cache is per-process and not shared unsafely."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_035",
+            "title": "Security: Mitigated YAML deserialization vulnerability in test runner.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The test runner used yaml.load() on fixture files, which allowed execution of arbitrary Python objects.",
+        "general_discussion": [
+            "Changed to yaml.safe_load().",
+            "Even if fixtures are usually local, they can be fetched from untrusted sources during CI/CD."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_036",
+            "title": "Fix: Prevent XML External Entity (XXE) in Sitemap parser.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The sitemap check was using an XML parser that allowed entity expansion, potentially leaking local files.",
+        "general_discussion": [
+            "We now disable DTDs and external entities in the parser config.",
+            "Critical for sites that ingest third-party sitemaps."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_037",
+            "title": "Refactor: Improved signal dispatcher to use WeakRefs.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Signals were holding strong references to receivers, preventing them from being garbage collected (Memory Leak).",
+        "general_discussion": [
+            "Fixed the leak. This was causing long-running management commands to crash after a few hours.",
+            "Standard memory management fix."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_038",
+            "title": "Security: Added constant-time HMAC verification for session cookies.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The old verification used a short-circuiting string comparison, which was vulnerable to a padding oracle or timing attack.",
+        "general_discussion": [
+            "Replaced with hmac.compare_digest().",
+            "Hardens session integrity against sophisticated offline analysis."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_039",
+            "title": "Fix #3301 -- Disallowed 'javascript:' URLs in URLField validation.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Users could bypass XSS filters by providing 'javascript:alert(1)' in a field that was later rendered in an <a> tag's href.",
+        "general_discussion": [
+            "While the template should escape, the validator should also catch this payload at the source.",
+            "Defense in depth."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_040",
+            "title": "Fix: Avoid race condition in file upload name collision handling.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "When two files with the same name were uploaded simultaneously, the 'get_available_name' check could return the same name for both due to a race.",
+        "general_discussion": [
+            "This resulted in one file overwriting the other.",
+            "Integrity bug, but not an exploit as it's a random collision."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/core/files/storage.py",
+                "comments": [
+                    "Could an attacker exploit this to overwrite critical files?",
+                    "No, the storage is restricted to a specific media root and only appends suffixes; it cannot path-traverse."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_041",
+            "title": "Security: Blocked potential HTTP Response Splitting via CRLF in headers.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "HttpResponse now raises an error if header values contain newline characters (\\r or \\n).",
+        "general_discussion": [
+            "Attackers use CRLF injection to inject their own headers or a second response body.",
+            "Sanitization added to the base Response class."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_042",
+            "title": "Refactor: Use a thread-safe random number generator for temporary file names.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Switching from 'random.random()' to 'secrets.SystemRandom()' for generating temp file names.",
+        "general_discussion": [
+            "Prevents filename prediction in multi-tenant environments.",
+            "Good for both security and avoiding collisions."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_043",
+            "title": "Fix: Corrected sign-extension bug in C-extension for GEOS bindings.",
+            "state": "CLOSED",
+            "is_merged": false
+        },
+        "description": "A signed integer was being promoted to unsigned incorrectly, leading to a buffer overflow on 32-bit systems.",
+        "general_discussion": [
+            "This could allow an attacker to crash the Python interpreter with a crafted geometry object.",
+            "Memory safety issue. Closing and fixing in a private security branch."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/gis/geos/libgeos.py",
+                "comments": [
+                    "This is an A08/A06 risk. Needs CVE."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_044",
+            "title": "Chore: Updated internal CA bundle for development testing.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The mock certificates used in the test suite were expired. Updated them to 2030.",
+        "general_discussion": [
+            "This only affects the 'tests/' directory. No impact on the framework core.",
+            "Standard maintenance."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_045",
+            "title": "Fix: Disable auto-fill for sensitive fields in Admin forms.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Added 'autocomplete=\"off\"' to password and API key fields in the admin panel.",
+        "general_discussion": [
+            "Prevents shared computers from remembering sensitive credentials in the browser cache.",
+            "Standard UX/Security hardening."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_046",
+            "title": "Fix: Optimized QuerySet.count() by removing unnecessary ORDER BY clauses.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Counting records doesn't require sorting. Removing the order_by() calls significantly reduces CPU load on the database for large tables.",
+        "general_discussion": [
+            "This was causing timeouts on the dashboard for our biggest clients.",
+            "Great performance win.",
+            "Is there any security risk in changing the SQL structure?",
+            "No, the resulting set count is identical, just faster."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_047",
+            "title": "Security: Mitigated HTTP Parameter Pollution in MultiValueDict query parsing.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Certain middleware was only checking the first occurrence of a key, while the application used the last, allowing attackers to bypass security filters.",
+        "general_discussion": [
+            "Standardizing on the last-key-wins approach to align with WAF expectations.",
+            "Prevents logic bypass via duplicate keys."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/utils/datastructures.py",
+                "comments": [
+                    "Does this affect GET and POST?",
+                    "Yes, both."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_048",
+            "title": "Fix: Prevented potential ReDoS in EmailValidator local-part regex.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "A crafted email address with nested comments could trigger catastrophic backtracking in the validator.",
+        "general_discussion": [
+            "An unauthenticated user could hang a signup process with a single request.",
+            "Regex refactored to be linear."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_049",
+            "title": "Refactor: Added type hints to the core authentication backends.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Adding PEP 484 type hints to ModelBackend to improve IDE support and catch static errors during development.",
+        "general_discussion": [
+            "No functional changes, just static typing.",
+            "Helps developers avoid passing None to methods that expect a User instance."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_050",
+            "title": "Security: Added protection against session fixation during login.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Django now forces a session cycle (deleting the old session and creating a new one) whenever a user logs in.",
+        "general_discussion": [
+            "Prevents an attacker from providing a pre-known session ID to a victim and taking over after they authenticate.",
+            "Hardening for the login() function."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_051",
+            "title": "Fix: Disallowed insecure redirects in the 'next' parameter of LoginView.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "LoginView was allowing redirects to external URLs (e.g., //attacker.com). Now strictly validates against ALLOWED_HOSTS.",
+        "general_discussion": [
+            "Prevents Open Redirect vulnerabilities used in phishing campaigns.",
+            "We use url_has_allowed_host_and_scheme() for validation now."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_052",
+            "title": "Refactor: Move internal constant-time comparison to a shared utility.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Consolidating constant_time_compare implementations from auth and sessions into django.utils.crypto.",
+        "general_discussion": [
+            "DRY cleanup. No logic change.",
+            "Just making the utility more accessible for third-party apps."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_053",
+            "title": "Fix: Avoided race condition in cache-based session backend.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The cache.set() was overwriting sessions in a way that could drop data if two requests finished at the exact same millisecond.",
+        "general_discussion": [
+            "This leads to users getting logged out intermittently under high load.",
+            "Functional integrity fix, not an exploit vector."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/sessions/backends/cache.py",
+                "comments": [
+                    "Does this leak data between users?",
+                    "No, it just loses the update for the current user (Fail-Safe)."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_054",
+            "title": "Security: Sanitize SVG files in FileField to prevent stored XSS.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Added a check to strip <script> and event handlers from uploaded SVG files.",
+        "general_discussion": [
+            "SVGs are XML and can contain executable code.",
+            "Crucial for sites allowing user-uploaded avatars or icons."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_055",
+            "title": "Fix: Ensure CSRF cookie is sent with 'SameSite=Lax' by default.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Updating the default cookie policy to protect against cross-site request forgery even in browsers that don't fully support our custom tokens.",
+        "general_discussion": [
+            "Good hardening measure for modern browsers.",
+            "Reduces the attack surface significantly."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_056",
+            "title": "Refactor: Replaced MD5 with SHA-256 for internal cache keys.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "While cache keys aren't a security boundary, MD5 is increasingly flagged by automated compliance scanners (FIPS).",
+        "general_discussion": [
+            "Moving to SHA-256 to satisfy audit requirements.",
+            "No security exploit was found, just a compliance refactor."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_057",
+            "title": "Security: Prevented timing attack in password reset token validation.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The token comparison was short-circuiting, allowing an attacker to guess tokens character by character.",
+        "general_discussion": [
+            "The leak was small (nanoseconds) but measurable over thousands of requests.",
+            "Implemented constant-time compare."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_058",
+            "title": "Fix #8801 -- Properly handle 'None' values in Admin change list filters.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "A bug in the integer filter caused a crash (ValueError) when a 'None' string was passed in the URL.",
+        "general_discussion": [
+            "Fixes a 500 error when clicking certain admin filters.",
+            "Functional bug in data casting."
+        ],
+        "code_review_threads": [
+            {
+                "scope": "django/contrib/admin/filters.py",
+                "comments": [
+                    "Can this lead to SQL injection?",
+                    "No, it uses Django's ORM parameterization. It just crashes before reaching the DB."
+                ]
+            }
+        ]
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_059",
+            "title": "Security: Restricted 'file://' scheme in URLField for certain backends.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Some server-side components (like image processors) were following 'file://' URLs, leading to Server-Side Request Forgery (SSRF) and local file disclosure.",
+        "general_discussion": [
+            "Attackers could point a URLField to /etc/passwd.",
+            "Added a blacklist for the 'file' scheme."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_060",
+            "title": "Chore: Updated the list of TLDs in EmailValidator.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Added support for new top-level domains like .app and .dev to the validation regex.",
+        "general_discussion": [
+            "Just a maintenance update for the domain list.",
+            "Ensures legitimate users aren't blocked."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_061",
+            "title": "Security: Mitigated HTTP Header Injection via newline in Set-Cookie.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "If a user-provided value (like a 'theme' name) was placed in a cookie without sanitization, it could inject additional headers.",
+        "general_discussion": [
+            "Standard CRLF injection fix for the cookie engine.",
+            "Ensures response integrity."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_062",
+            "title": "Fix: Added defensive checks in JSON deserialization for large integers.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Very large integers in JSON could lead to CPU exhaustion during conversion to Python's arbitrary-precision ints (DoS).",
+        "general_discussion": [
+            "Added a limit to the number of digits allowed in a JSON number.",
+            "Standard DoS protection for parsers."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_063",
+            "title": "Refactor: Optimized i18n URL prefixes for better SEO.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "Changes how /en-us/ is handled to avoid double redirects. No change to access control logic.",
+        "general_discussion": [
+            "Performance and SEO improvement.",
+            "Purely a routing refactor."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_064",
+            "title": "Security: Enforce permission check in Admin 'History' view for related objects.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "The history view was showing logs for objects the user didn't have 'view' permission for, as long as they knew the ID.",
+        "general_discussion": [
+            "Information leak in the admin logs.",
+            "Access control fix (A01)."
+        ],
+        "code_review_threads": []
+    },
+    {
+        "context": {
+            "repository": "django/django",
+            "pr_id": "PR_TEST_065",
+            "title": "Fix: Ensured temporary upload files are deleted on request termination.",
+            "state": "MERGED",
+            "is_merged": true
+        },
+        "description": "If a request crashed mid-upload, the temp file remained on disk. Added a try/finally block to ensure cleanup.",
+        "general_discussion": [
+            "Fixes a disk space leak issue.",
+            "Resource management bug (Fail-Safe).",
+            "If we don't fix this, can an attacker fill the disk?",
+            "Technically yes, but it would take millions of failed requests; still, it's a bug, not a vulnerability."
+        ]
+    }
+]

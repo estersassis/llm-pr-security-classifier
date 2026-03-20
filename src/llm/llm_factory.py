@@ -4,7 +4,7 @@ from .handler.base_handler import LLMHandler
 
 class LLMFactory:
     @staticmethod
-    def get_processor(model: str, api_key: str, system_prompts: dict) -> LLMHandler:
+    def get_processor(model: str, api_key: str) -> LLMHandler:
         if "gemini" in model.lower():
-            return GeminiHandler(model, api_key, system_prompts)
-        return OllamaHandler(model, system_prompts)
+            return GeminiHandler(model, api_key)
+        return OllamaHandler(model)

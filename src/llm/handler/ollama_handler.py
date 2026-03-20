@@ -1,20 +1,19 @@
 from .base_handler import LLMHandler
+from ..prompt import PromptRepository
 import requests
 
 
 class OllamaHandler(LLMHandler):
-    def __init__(self, model_name, system_prompts):
+    def __init__(self, model_name):
         self.model_name = model_name
-        self.system_prompts = system_prompts
+        self.prompt_repository = PromptRepository(model_name)
         self.url = "http://localhost:11434/api/generate"
 
-    def generate(self, user_prompt: str, is_batch: bool) -> str:
-        system_content = self.system_prompts['batch'] if is_batch else self.system_prompts['unit']
-        
+    def generate(self, user_content: str) -> str:
         payload = {
             "model": self.model_name,
-            "system": system_content,
-            "prompt": user_prompt,
+            "system": self.prompt_repository.get_system_prompt(),
+            "prompt": self.prompt_repository.get_user_prompt(user_content),
             "stream": False,
             "format": "json",
             "options": {"temperature": 0.0}

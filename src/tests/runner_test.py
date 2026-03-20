@@ -286,3 +286,490 @@ class TestLLMRunner:
                     
                     assert len(results) == 1
                     assert results[0] == self.sample_llm_response
+
+    # ============================================
+    # Tests for Batch Processing Functionality
+    # ============================================
+    
+    @patch('os.listdir')
+    def test_run_no_files(self, mock_listdir):
+        """Test run when no files need processing."""
+        mock_listdir.return_value = ["file1.txt", "file2.py"]
+        
+        with patch.object(self.runner, 'partial_save') as mock_save:
+            self.runner.run(batch_size=15)
+            
+            # No files to process, so no saves should happen
+            mock_save.assert_not_called()
+    
+    @patch('os.listdir')
+    def test_run_single_batch(self, mock_listdir):
+        """Test run with files fitting in single batch."""
+        mock_listdir.return_value = ["test1.json", "test2.json", "test3.json"]
+        
+        # Mock batch processing response
+        batch_response = {
+            "test1": [{"category": "Injection", "issue": "SQL injection"}],
+            "test2": [],
+            "test3": [{"category": "XSS", "issue": "Cross-site scripting"}]
+        }
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        mock_format.return_value = self.sample_pr_data
+                        mock_llm.return_value = "batch response"
+                        mock_extract.return_value = batch_response
+                        
+                        with patch('builtins.print') as mock_print:
+                            self.runner.run(batch_size=15)
+                            
+                            # Verify batch prompt was called
+                            mock_prompt.assert_called_once()
+                            args = mock_prompt.call_args[0][0]
+                            assert isinstance(args, list)
+                            assert len(args) == 3
+                            
+                            # Verify all IDs were processed
+                            assert "test1" in self.runner.processed_ids
+                            assert "test2" in self.runner.processed_ids
+                            assert "test3" in self.runner.processed_ids
+                            
+                            mock_print.assert_any_call("Processando lote de 3 PRs...")
+    
+    @patch('os.listdir')
+    def test_run_multiple_batches(self, mock_listdir):
+        """Test run with files requiring multiple batches."""
+        # Create 25 mock files (will need 2 batches of size 15)
+        json_files = [f"test{i}.json" for i in range(25)]
+        mock_listdir.return_value = json_files
+        
+        # Mock batch responses for each batch
+        def mock_extract_side_effect(response):
+            # Return different results for each batch call
+            if mock_extract_side_effect.call_count <= 15:
+                return {f"test{i}": [] for i in range(15)}
+            else:
+                return {f"test{i}": [] for i in range(15, 25)}
+        
+        mock_extract_side_effect.call_count = 0
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        mock_format.return_value = self.sample_pr_data
+                        mock_llm.return_value = "batch response"
+                        
+                        # Configure extract to return proper batch results
+                        batch1_response = {f"test{i}": [] for i in range(15)}
+                        batch2_response = {f"test{i}": [] for i in range(15, 25)}
+                        mock_extract.side_effect = [batch1_response, batch2_response]
+                        
+                        with patch('builtins.print') as mock_print:
+                            self.runner.run(batch_size=15)
+                            
+                            # Verify two batches were processed
+                            assert mock_prompt.call_count == 2
+                            assert mock_llm.call_count == 2
+                            
+                            mock_print.assert_any_call("Processando lote de 15 PRs...")
+                            mock_print.assert_any_call("Processando lote de 10 PRs...")
+    
+    @patch('os.listdir')
+    def test_run_skip_processed(self, mock_listdir):
+        """Test run skips already processed files."""
+        mock_listdir.return_value = ["test1.json", "test2.json", "test3.json"]
+        self.runner.processed_ids = {"test1"}  # test1 already processed
+        
+        batch_response = {
+            "test2": [{"category": "Injection", "issue": "SQL"}],
+            "test3": []
+        }
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        mock_format.return_value = self.sample_pr_data
+                        mock_llm.return_value = "batch response"
+                        mock_extract.return_value = batch_response
+                        
+                        self.runner.run(batch_size=15)
+                        
+                        # Verify only 2 files were processed (test1 was skipped)
+                        args = mock_prompt.call_args[0][0]
+                        assert len(args) == 2
+                        
+                        # Verify test1 is still in processed but not re-added
+                        assert "test1" in self.runner.processed_ids
+                        assert "test2" in self.runner.processed_ids
+                        assert "test3" in self.runner.processed_ids
+    
+    @patch('os.listdir')
+    def test_run_with_issues(self, mock_listdir):
+        """Test run correctly handles batch results with issues."""
+        mock_listdir.return_value = ["test1.json", "test2.json"]
+        
+        batch_response = {
+            "test1": [
+                {"category": "Broken Access Control", "issue": "Missing auth check"},
+                {"category": "Injection", "issue": "SQL injection risk"}
+            ],
+            "test2": [
+                {"category": "Cryptographic Failures", "issue": "Weak hashing"}
+            ]
+        }
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        with patch.object(self.runner, 'partial_save') as mock_save:
+                            mock_format.return_value = self.sample_pr_data
+                            mock_llm.return_value = "batch response"
+                            mock_extract.return_value = batch_response
+                            
+                            self.runner.run(batch_size=15)
+                            
+                            # Verify save was called with correct data
+                            mock_save.assert_called_once()
+                            saved_data = mock_save.call_args[0][0]
+                            
+                            # Find the saved entries for test1 and test2
+                            test1_entry = next(e for e in saved_data if e["id"] == "test1")
+                            test2_entry = next(e for e in saved_data if e["id"] == "test2")
+                            
+                            assert len(test1_entry["issues"]) == 2
+                            assert len(test2_entry["issues"]) == 1
+                            assert test1_entry["issues"][0]["category"] == "Broken Access Control"
+                            assert test2_entry["issues"][0]["category"] == "Cryptographic Failures"
+    
+    @patch('os.listdir')
+    def test_run_empty_response(self, mock_listdir):
+        """Test run handles empty/None response gracefully."""
+        mock_listdir.return_value = ["test1.json", "test2.json"]
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        with patch.object(self.runner, 'partial_save') as mock_save:
+                            mock_format.return_value = self.sample_pr_data
+                            mock_llm.return_value = "invalid response"
+                            mock_extract.return_value = None  # Failed extraction
+                            
+                            self.runner.run(batch_size=15)
+                            
+                            # Should not crash, but also should not save anything
+                            mock_save.assert_not_called()
+    
+    @patch('os.listdir')
+    def test_run_custom_batch_size(self, mock_listdir):
+        """Test run respects custom batch size."""
+        json_files = [f"test{i}.json" for i in range(30)]
+        mock_listdir.return_value = json_files
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'prompt_formatting') as mock_prompt:
+                with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                    with patch('src.main.extract_json_from_response') as mock_extract:
+                        mock_format.return_value = self.sample_pr_data
+                        mock_llm.return_value = "batch response"
+                        
+                        # Each call returns a batch result
+                        def create_batch_response(start, end):
+                            return {f"test{i}": [] for i in range(start, end)}
+                        
+                        mock_extract.side_effect = [
+                            create_batch_response(0, 10),
+                            create_batch_response(10, 20),
+                            create_batch_response(20, 30)
+                        ]
+                        
+                        self.runner.run(batch_size=10)
+                        
+                        # Should process 3 batches of 10
+                        assert mock_prompt.call_count == 3
+                        
+                        # Verify each batch had 10 items
+                        for call in mock_prompt.call_args_list:
+                            batch_data = call[0][0]
+                            assert len(batch_data) == 10
+    
+    @patch('os.listdir')
+    def test_run_integration(self, mock_listdir):
+        """Integration test for batch processing with file I/O."""
+        # Create test JSON files
+        for i in range(3):
+            test_file = os.path.join(self.pr_folder, f"batch_test{i}.json")
+            with open(test_file, "w") as f:
+                json.dump({
+                    "title": f"Test PR {i}",
+                    "body": f"Test body {i}",
+                    "timeline_items": []
+                }, f)
+        
+        mock_listdir.return_value = ["batch_test0.json", "batch_test1.json", "batch_test2.json"]
+        
+        batch_response = {
+            "batch_test0": [{"category": "Injection", "issue": "Issue 0"}],
+            "batch_test1": [],
+            "batch_test2": [{"category": "XSS", "issue": "Issue 2"}]
+        }
+        
+        with patch.object(self.runner.pr_formatter, 'format_pr_discussions') as mock_format:
+            with patch.object(self.runner.llm_processor, 'llm') as mock_llm:
+                with patch('src.main.extract_json_from_response') as mock_extract:
+                    mock_format.return_value = self.sample_pr_data
+                    mock_llm.return_value = "batch response"
+                    mock_extract.return_value = batch_response
+                    
+                    self.runner.run(batch_size=15)
+                    
+                    # Verify output file was created with correct structure
+                    assert os.path.exists(self.output_file)
+                    with open(self.output_file, "r") as f:
+                        results = json.load(f)
+                    
+                    assert len(results) == 3
+                    
+                    # Find specific results
+                    result0 = next(r for r in results if r["id"] == "batch_test0")
+                    result1 = next(r for r in results if r["id"] == "batch_test1")
+                    result2 = next(r for r in results if r["id"] == "batch_test2")
+                    
+                    assert len(result0["issues"]) == 1
+                    assert len(result1["issues"]) == 0
+                    assert len(result2["issues"]) == 1
+
+
+
+class TestLLMRunnerBatch:
+    """Testes para a funcionalidade de processamento em batch."""
+
+    def setup_method(self):
+        """Configuração para cada teste."""
+        import shutil
+        self.temp_dir = tempfile.mkdtemp()
+        self.output_file = os.path.join(self.temp_dir, "output.json")
+        self.pr_folder = os.path.join(self.temp_dir, "prs")
+        os.makedirs(self.pr_folder)
+        self.shutil = shutil
+
+    def teardown_method(self):
+        """Limpeza após cada teste."""
+        self.shutil.rmtree(self.temp_dir)
+
+    def _create_test_pr_file(self, filename, content=None):
+        """Helper para criar arquivo de PR de teste."""
+        if content is None:
+            content = {
+                "title": f"Test PR {filename}",
+                "description": "Test description",
+                "threads": []
+            }
+        
+        filepath = os.path.join(self.pr_folder, filename)
+        with open(filepath, 'w') as f:
+            json.dump(content, f)
+        return filepath
+
+    @patch('src.main.LLMProcessor')
+    def test_run_basic(self, mock_processor_class):
+        """Testa processamento básico em batch."""
+        # Criar alguns arquivos de teste
+        self._create_test_pr_file("pr1.json")
+        self._create_test_pr_file("pr2.json")
+        self._create_test_pr_file("pr3.json")
+
+        # Mock do LLM processor
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+        
+        # Mock da resposta do LLM em batch (formato: {id: issues})
+        mock_instance.llm.return_value = json.dumps({
+            "pr1": [{"category": "Injection", "issue": "SQL injection found"}],
+            "pr2": [],
+            "pr3": [{"category": "Broken Access Control", "issue": "Auth bypass"}]
+        })
+
+        # Executar
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        runner.run(batch_size=3)
+
+        # Verificações
+        assert os.path.exists(self.output_file)
+        
+        with open(self.output_file, 'r') as f:
+            results = json.load(f)
+        
+        assert len(results) == 3
+        result_ids = [r["id"] for r in results]
+        assert "pr1" in result_ids
+        assert "pr2" in result_ids
+        assert "pr3" in result_ids
+
+    @patch('src.main.LLMProcessor')
+    def test_run_with_multiple_batches(self, mock_processor_class):
+        """Testa processamento em múltiplos batches."""
+        # Criar 7 arquivos para testar com batch_size=3
+        for i in range(1, 8):
+            self._create_test_pr_file(f"pr{i}.json")
+
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+        
+        # Mock responderá com apenas os PRs do batch atual
+        call_count = [0]
+        def mock_llm_response(*args, **kwargs):
+            call_count[0] += 1
+            # Batch 1: pr1, pr2, pr3
+            if call_count[0] == 1:
+                return json.dumps({"pr1": [], "pr2": [], "pr3": []})
+            # Batch 2: pr4, pr5, pr6
+            elif call_count[0] == 2:
+                return json.dumps({"pr4": [], "pr5": [], "pr6": []})
+            # Batch 3: pr7
+            else:
+                return json.dumps({"pr7": []})
+        
+        mock_instance.llm.side_effect = mock_llm_response
+
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        runner.run(batch_size=3)
+
+        # Verificar que foram chamados 3 batches (ceiling(7/3) = 3)
+        assert mock_instance.llm.call_count == 3
+
+        with open(self.output_file, 'r') as f:
+            results = json.load(f)
+        
+        assert len(results) == 7
+        result_ids = [r["id"] for r in results]
+        for i in range(1, 8):
+            assert f"pr{i}" in result_ids
+
+    @patch('src.main.LLMProcessor')
+    def test_run_skips_processed_ids(self, mock_processor_class):
+        """Testa que o batch ignora IDs já processados."""
+        # Criar arquivos
+        self._create_test_pr_file("pr1.json")
+        self._create_test_pr_file("pr2.json")
+        self._create_test_pr_file("pr3.json")
+
+        # Criar arquivo de output com pr1 já processado
+        with open(self.output_file, 'w') as f:
+            json.dump([{"id": "pr1", "issues": []}], f)
+
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+        
+        mock_instance.llm.return_value = json.dumps({
+            "pr2": [],
+            "pr3": []
+        })
+
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        runner.run(batch_size=3)
+
+        # Verificar que pr1 ainda está lá e pr2, pr3 foram adicionados
+        with open(self.output_file, 'r') as f:
+            results = json.load(f)
+        
+        ids = [r["id"] for r in results]
+        assert "pr1" in ids
+        assert "pr2" in ids
+        assert "pr3" in ids
+
+    @patch('src.main.LLMProcessor')
+    def test_run_handles_llm_errors(self, mock_processor_class):
+        """Testa tratamento de erros do LLM no modo batch."""
+        self._create_test_pr_file("pr1.json")
+        self._create_test_pr_file("pr2.json")
+
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+        
+        # Mock retorna resposta inválida
+        mock_instance.llm.return_value = "Invalid JSON response"
+
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        
+        # Não deve lançar exceção
+        runner.run(batch_size=2)
+
+    @patch('src.main.LLMProcessor')
+    def test_run_preserves_existing_results(self, mock_processor_class):
+        """Testa que resultados existentes são preservados."""
+        # Criar resultados existentes
+        existing_results = [
+            {"id": "old_pr", "issues": [{"category": "Test", "issue": "Old issue"}]}
+        ]
+        with open(self.output_file, 'w') as f:
+            json.dump(existing_results, f)
+
+        # Criar novos arquivos
+        self._create_test_pr_file("new_pr1.json")
+        self._create_test_pr_file("new_pr2.json")
+
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+        
+        mock_instance.llm.return_value = json.dumps({
+            "new_pr1": [],
+            "new_pr2": [{"category": "Injection", "issue": "New issue"}]
+        })
+
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        runner.run(batch_size=2)
+
+        with open(self.output_file, 'r') as f:
+            results = json.load(f)
+        
+        # Deve ter o antigo + os 2 novos
+        assert len(results) == 3
+        
+        ids = [r["id"] for r in results]
+        assert "old_pr" in ids
+        assert "new_pr1" in ids
+        assert "new_pr2" in ids
+
+    @patch('src.main.LLMProcessor')
+    def test_run_with_empty_folder(self, mock_processor_class):
+        """Testa comportamento com pasta vazia."""
+        mock_instance = MagicMock()
+        mock_processor_class.return_value = mock_instance
+
+        runner = LLMRunner(
+            model="test-model",
+            output_file_path=self.output_file,
+            pr_folder_path=self.pr_folder
+        )
+        
+        # Não deve lançar exceção
+        runner.run(batch_size=3)
+        
+        # LLM não deve ser chamado
+        mock_instance.llm.assert_not_called()

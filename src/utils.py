@@ -2,31 +2,51 @@ import re
 import json
 
 def extract_json_from_response(response):
-    # First try to find JSON objects
+    # Handle None or empty response
+    if response is None or not isinstance(response, str):
+        return None
+
+    stripped = response.strip()
+
+    # Tenta parse completo primeiro (resposta JSON limpa)
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+
+    # Resposta pode vir embutida em texto; extrai JSON iniciando em [ ou {
+    for start_char, end_char in [("[", "]"), ("{", "}")]:
+        if start_char in stripped:
+            start = stripped.find(start_char)
+            # Tenta parse do primeiro [ ou { até o fim, encurtando até obter JSON válido
+            for end in range(len(stripped), start, -1):
+                candidate = stripped[start:end]
+                if not candidate.endswith(end_char):
+                    continue
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+            break
+
+    # Fallback: busca primeiro objeto ou array via regex
     json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-    
-    match = re.search(json_pattern, response, re.DOTALL)
+    match = re.search(json_pattern, stripped, re.DOTALL)
     if match:
-        json_str = match.group(0)
         try:
-            return json.loads(json_str)
+            return json.loads(match.group(0))
         except json.JSONDecodeError:
             pass
-    
-    # Try to find JSON arrays (including empty arrays)
+
     array_pattern = r'\[\s*(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\s*(?:,\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\s*)*)?\]'
-    array_match = re.search(array_pattern, response, re.DOTALL)
+    array_match = re.search(array_pattern, stripped, re.DOTALL)
     if array_match:
-        array_str = array_match.group(0)
         try:
-            return json.loads(array_str)
+            return json.loads(array_match.group(0))
         except json.JSONDecodeError:
             pass
-    
-    # Try to find simple empty array
-    empty_array_pattern = r'\[\s*\]'
-    empty_match = re.search(empty_array_pattern, response)
-    if empty_match:
+
+    if re.search(r'\[\s*\]', stripped):
         return []
     
     return None

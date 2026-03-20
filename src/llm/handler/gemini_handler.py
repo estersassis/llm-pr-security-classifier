@@ -1,26 +1,24 @@
 import google.generativeai as genai
 from .base_handler import LLMHandler
+from ..prompt import PromptRepository
 
 
 class GeminiHandler(LLMHandler):
-    def __init__(self, model_name, api_key, system_prompts):
+    def __init__(self, model_name, api_key):
         genai.configure(api_key=api_key)
         self.model_name = model_name
-        self.system_prompts = system_prompts
-
-    def generate(self, user_prompt: str, is_batch: bool) -> str:
-        system_content = self.system_prompts['batch'] if is_batch else self.system_prompts['unit']
+        self.prompt_repository = PromptRepository(model_name)
         
-        # Inicializa o modelo com a instrução de sistema fixa
-        model = genai.GenerativeModel(
+        self.model = genai.GenerativeModel(
             model_name=self.model_name,
-            system_instruction=system_content,
+            system_instruction=self.prompt_repository.get_system_prompt(),
             generation_config={
                 "temperature": 0,
                 "response_mime_type": "application/json"
             }
         )
-        
-        # Chamada síncrona
-        response = model.generate_content(user_prompt)
+
+    def generate(self, user_content: str) -> str:
+        user_prompt = self.prompt_repository.get_user_prompt(user_content)
+        response = self.model.generate_content(user_prompt)
         return response.text

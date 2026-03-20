@@ -25,11 +25,10 @@ class PRFormatter:
     # Fonte: Framework PRIMES - Seção III-A [cite: 298]
     context = {
         "repository": input_data.get("base_repository", "unknown"),
-        "pr_number": input_data.get("number"),
+        "pr_id": input_data.get("id"),
         "title": input_data.get("title", ""),
         "state": input_data.get("state", ""),
-        "is_merged": input_data.get("merged", False),
-        "created_at": input_data.get("created_at", {}).get("$date")
+        "is_merged": input_data.get("merged", False)
     }
 
     pr_description = input_data.get("body", "")
@@ -82,15 +81,15 @@ class PRFormatter:
     }
 
   def format_pr_discussions(self, file_path: str) -> dict:
-      """
-      Converte um objeto de Pull Request (como nos dumps do GraphQL/REST do GitHub)
-      para o formato compacto descrito na docstring do módulo.
+    """
+    Converte um objeto de Pull Request (como nos dumps do GraphQL/REST do GitHub)
+    para o formato compacto descrito na docstring do módulo.
 
-      Args:
-          file_path (str): Caminho para o arquivo JSON do Pull Request.
+    Args:
+        file_path (str): Caminho para o arquivo JSON do Pull Request.
 
-      Returns:
-          dict: Dados formatados do Pull Request.
-      """
-      input_data = self._open_pr_file(file_path)
-      return self.format_pr_data(input_data)
+    Returns:
+        dict: Dados formatados do Pull Request.
+    """
+    input_data = self._open_pr_file(file_path)
+    return self.format_pr_data(input_data)

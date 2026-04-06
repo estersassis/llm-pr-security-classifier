@@ -1,24 +1,76 @@
 from sklearn.metrics import cohen_kappa_score
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
+from src.llm.llm_factory import LLMFactory
+from src.utils import extract_json_from_response
 
-def extract_categories(caminho_arquivo):
-    with open(caminho_arquivo, 'r') as f:
-        dados = json.load(f)
-    return [item['owasp_category'] for item in sorted(dados, key=lambda x: x['pr_id'])]
+class PilotKappaScore:
+    def __init__(self, model, api_key):
+        self.model = model
+        self.api_key = api_key
+        self.llm_handler = LLMFactory.get_processor(model, api_key)
+    
+    def generate_llm_pilot_prs(self):
+        pilot_prs = json.load(open('src/pilot/pilot_prs.json'))
+        llm_pilot_prs = []
+        for pr in pilot_prs:
+            print(f"Generating LLM pilot PRs for {pr['context']['pr_id']}")
+            llm_pilot_response = self.llm_handler.generate([pr])
+            llm_pilot_response_formatted = extract_json_from_response(llm_pilot_response)
+            print(f"LLM pilot PR response formatted: {llm_pilot_response_formatted[0]}")
+            llm_pilot_prs.append(llm_pilot_response_formatted[0])
+        return llm_pilot_prs
 
-# Simulando os caminhos dos arquivos
-y_humano = extract_categories('pilot_human.json')
-y_llm = extract_categories('pilot_llm.json')
+    def create_llm_pilot_prs_file(self):
+        llm_pilot_prs = self.generate_llm_pilot_prs()
+        with open('src/pilot/pilot_llm.json', 'w') as f:
+            json.dump(llm_pilot_prs, f)
 
-# As categorias devem ser exatamente as mesmas nos dois arquivos
-categorias_owasp = [
-    "A01: Broken Access Control", "A02: Security Misconfiguration", 
-    "A03: Software Supply Chain Failures", "A04: Cryptographic Failures", 
-    "A05: Injection", "A06: Insecure Design", "A07: Authentication Failures", 
-    "A08: Software or Data Integrity Failures", "A09: Security Logging and Alerting Failures", 
-    "A10: Mishandling of Exceptional Conditions", "NONE"
-]
+    def extract_categories(self, caminho_arquivo):
+        with open(caminho_arquivo, 'r') as f:
+            dados = json.load(f)
+        return [item['owasp_category'] for item in sorted(dados, key=lambda x: x['pr_id'])]
+    
+    def extract_type_of_action(self, caminho_arquivo):
+        with open(caminho_arquivo, 'r') as f:
+            dados = json.load(f)
+        return [item['nature'] for item in sorted(dados, key=lambda x: x['pr_id'])]
+    
+    def calculate_kappa_score(self):
+        y_humano = self.extract_categories('src/pilot/pilot_human.json')
+        y_llm = self.extract_categories('src/pilot/pilot_llm.json')
+        y_humano_type_of_action = self.extract_type_of_action('src/pilot/pilot_human.json')
+        y_llm_type_of_action = self.extract_type_of_action('src/pilot/pilot_llm.json')
 
-# O cálculo permanece o mesmo, o sklearn trata a multiclasse internamente
-kappa = cohen_kappa_score(y_humano, y_llm, labels=categorias_owasp)
-print(f"Kappa Score: {kappa}")
+        categorias_owasp = [
+            "A01: Broken Access Control", "A02: Security Misconfiguration", 
+            "A03: Software Supply Chain Failures", "A04: Cryptographic Failures", 
+            "A05: Injection", "A06: Insecure Design", "A07: Authentication Failures", 
+            "A08: Software or Data Integrity Failures", "A09: Security Logging and Alerting Failures", 
+            "A10: Mishandling of Exceptional Conditions", "NONE"
+        ]
+
+        categories_type_of_action = [
+            "FIX/PREVENTION", "VULNERABILITY_INTRODUCTION", "N/A"
+        ]
+
+        # O cálculo permanece o mesmo, o sklearn trata a multiclasse internamente
+        kappa_owasp_category = cohen_kappa_score(y_humano, y_llm, labels=categorias_owasp)
+        kappa_type_of_action = cohen_kappa_score(y_humano_type_of_action, y_llm_type_of_action, labels=categories_type_of_action)
+        print(f"Kappa Score Owasp Category: {kappa_owasp_category}")
+        print(f"Kappa Score Type of Action: {kappa_type_of_action}")
+
+# depending on the arguments call the appropriate method
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--create_llm_pilot_prs", action="store_true")
+    parser.add_argument("--calculate_kappa_score", action="store_true")
+    args = parser.parse_args()
+    kappa_score = PilotKappaScore(model="gemini-2.5-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
+    if args.create_llm_pilot_prs:
+        kappa_score.create_llm_pilot_prs_file()
+    elif args.calculate_kappa_score:
+        kappa_score.calculate_kappa_score()

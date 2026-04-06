@@ -1,0 +1,252 @@
+[
+    {
+        "pr_id": "PR_TEST_001",
+        "owasp_category": "A01: Broken Access Control",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_002",
+        "owasp_category": "A01: Broken Access Control",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_003",
+        "owasp_category": "A01: Broken Access Control",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_004",
+        "owasp_category": "A01: Broken Access Control",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_005",
+        "owasp_category": "A01: Broken Access Control",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_006",
+        "owasp_category": "A02: Security Misconfiguration",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_007",
+        "owasp_category": "A02: Security Misconfiguration",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_008",
+        "owasp_category": "A02: Security Misconfiguration",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_009",
+        "owasp_category": "A02: Security Misconfiguration",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_010",
+        "owasp_category": "A02: Security Misconfiguration",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_011",
+        "owasp_category": "A03: Software Supply Chain Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_012",
+        "owasp_category": "A03: Software Supply Chain Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_013",
+        "owasp_category": "A03: Software Supply Chain Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_014",
+        "owasp_category": "A04: Cryptographic Failures",
+        "nature": "VULNERABILITY_INTRODUCTION" 
+    },
+    {
+        "pr_id": "PR_TEST_015",
+        "owasp_category": "A04: Cryptographic Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_016",
+        "owasp_category": "A04: Cryptographic Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_017",
+        "owasp_category": "A05: Injection",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_018",
+        "owasp_category": "A05: Injection",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_019",
+        "owasp_category": "A05: Injection",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_020",
+        "owasp_category": "A06: Insecure Design",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_021",
+        "owasp_category": "A06: Insecure Design",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_022",
+        "owasp_category": "A06: Insecure Design",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_023",
+        "owasp_category": "A06: Insecure Design",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_024",
+        "owasp_category": "A07: Authentication Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_025",
+        "owasp_category": "A07: Authentication Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_026",
+        "owasp_category": "A07: Authentication Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_027",
+        "owasp_category": "A07: Authentication Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_028",
+        "owasp_category": "A08: Software or Data Integrity Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_029",
+        "owasp_category": "A08: Software or Data Integrity Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_030",
+        "owasp_category": "A08: Software or Data Integrity Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_031",
+        "owasp_category": "A08: Software or Data Integrity Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_032",
+        "owasp_category": "A09: Security Logging and Alerting Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_033",
+        "owasp_category": "A09: Security Logging and Alerting Failures",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_034",
+        "owasp_category": "A09: Security Logging and Alerting Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_035",
+        "owasp_category": "A09: Security Logging and Alerting Failures",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_036",
+        "owasp_category": "A10: Mishandling of Exceptional Conditions",
+        "nature": "VULNERABILITY_INTRODUCTION"
+    },
+    {
+        "pr_id": "PR_TEST_037",
+        "owasp_category": "A10: Mishandling of Exceptional Conditions",
+        "nature": "FIX/PREVENTION"
+    },
+    {
+        "pr_id": "PR_TEST_038",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_039",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_040",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_041",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_042",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_043",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_044",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_045",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_046",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_047",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_048",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_049",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    },
+    {
+        "pr_id": "PR_TEST_050",
+        "owasp_category": "NONE",
+        "nature": "N/A"
+    }
+]

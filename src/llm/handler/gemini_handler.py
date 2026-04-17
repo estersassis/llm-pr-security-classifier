@@ -19,6 +19,9 @@ class GeminiHandler(LLMHandler):
         )
 
     def generate(self, user_content: str) -> str:
-        user_prompt = self.prompt_repository.get_user_prompt(user_content)
-        response = self.model.generate_content(user_prompt)
-        return response.text
+        try:
+            user_prompt = self.prompt_repository.get_user_prompt(user_content)
+            response = self.model.generate_content(user_prompt)
+            return response.text
+        except Exception as e:
+            print(f"Error generating response: {response}")

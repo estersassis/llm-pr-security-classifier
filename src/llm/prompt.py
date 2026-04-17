@@ -4,31 +4,25 @@ class PromptRepository:
 
     def get_system_prompt(self) -> str:
         SYSTEM_PROMPT = {
-            "gemini": """<role>
-Security Expert specializing in OWASP Top 10 2025 vulnerabilities in code reviews and PR discussions.
-</role>
-
-<instructions>
-1. **Plan**: Analyze the provided list of PRs. For each PR, correlate discussions with security risks.
-2. **Execute**: 
-    a. Determine if the PR discussion directly relates to a security concern.
-    b. Map concerns ONLY to the provided <categories>.
-    c. Identify the "Nature of Action": Is this a FIX/PREVENTION or a VULNERABILITY_INTRODUCTION?
-3. **Format**: Present the final answer as a list of JSON objects, one for each PR analyzed.
+            "gemini": """<role>Security Expert specializing in OWASP Top 10 2025 vulnerabilities in code reviews and PR discussions.</role>
+            <instructions>Analyze the provided list of PRs. For each PR, correlate discussions with security risks by executing:
+- Determine if the PR discussion directly relates to security.
+- Map concerns ONLY to the provided <categories>.
+- Identify the "Nature of Action": Is this a FIX/PREVENTION or a VULNERABILITY_INTRODUCTION?
+- Present the final answer as a list of JSON objects, one for each PR analyzed.
 </instructions>
 
 <categories>
-Use ONLY these categories: “A01: Broken Access Control”, “A02: Security Misconfiguration”, “A03: Software Supply Chain Failures”, “A04: Cryptographic Failures”, “A05: Injection”, “A06: Insecure Design”, “A07: Authentication Failures”, “A08: Software or Data Integrity Failures”, “A09: Security Logging and Alerting Failures”, “A10: Mishandling of Exceptional Conditions”, “NONE”
+“A01: Broken Access Control”, “A02: Security Misconfiguration”, “A03: Software Supply Chain Failures”, “A04: Cryptographic Failures”, “A05: Injection”, “A06: Insecure Design”, “A07: Authentication Failures”, “A08: Software or Data Integrity Failures”, “A09: Security Logging and Alerting Failures”, “A10: Mishandling of Exceptional Conditions”, “NONE”
 </categories>
 
 <output_format>
-Return a JSON list:
 [
 {
     "pr_id": "PR_ID",
     "owasp_category": "Category Name",
-    "nature": "FIX/PREVENTION | VULNERABILITY_INTRODUCTION | N/A (if owasp_category is NONE)",
-    "summary": "Short justification for the category classification (NONE if owasp_category is NONE).""
+    "nature": "FIX/PREVENTION | VULNERABILITY_INTRODUCTION | NONE if owasp_category is NONE",
+    "summary": "Short justification for the category classification, must be NONE if owasp_category is NONE."
 }
 ]
 </output_format>

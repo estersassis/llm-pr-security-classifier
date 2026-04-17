@@ -187,66 +187,66 @@
     {
         "pr_id": "PR_TEST_038",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_039",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_040",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_041",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_042",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_043",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_044",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_045",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_046",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_047",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_048",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_049",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     },
     {
         "pr_id": "PR_TEST_050",
         "owasp_category": "NONE",
-        "nature": "N/A"
+        "nature": "NONE"
     }
 ]

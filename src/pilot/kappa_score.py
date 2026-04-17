@@ -12,6 +12,52 @@ class PilotKappaScore:
         self.api_key = api_key
         self.llm_handler = LLMFactory.get_processor(model, api_key)
     
+    def generate_llm_pilot_prs_batch(self):
+        """Run a single LLM call with every pilot PR in context; expect one JSON array in reply."""
+        with open('src/pilot/pilot_prs.json') as f:
+            pilot_prs = json.load(f)
+        n = len(pilot_prs)
+        print(f"Generating LLM pilot PRs in one batch ({n} PRs)")
+        user_payload = json.dumps(pilot_prs, ensure_ascii=False, indent=2)
+        llm_response = self.llm_handler.generate(user_payload)
+        parsed = extract_json_from_response(llm_response)
+        if parsed is None:
+            print(f"Error extracting JSON from batch response (first 800 chars): {llm_response[:800]!r}")
+            return []
+        if isinstance(parsed, dict):
+            parsed = [parsed]
+        if len(parsed) != n:
+            print(f"Warning: batch returned {len(parsed)} items, pilot set has {n}")
+        return parsed
+
+    def create_llm_pilot_prs_file_batch(self):
+        llm_pilot_prs = self.generate_llm_pilot_prs_batch()
+        with open('src/pilot/pilot_llm_batch.json', 'w') as f:
+            json.dump(llm_pilot_prs, f)
+
+    def calculate_kappa_score_batch(self):
+        y_humano = self.extract_categories('src/pilot/pilot_human.json')
+        y_llm = self.extract_categories('src/pilot/pilot_llm_batch.json')
+        y_humano_type_of_action = self.extract_type_of_action('src/pilot/pilot_human.json')
+        y_llm_type_of_action = self.extract_type_of_action('src/pilot/pilot_llm_batch.json')
+
+        categorias_owasp = [
+            "A01: Broken Access Control", "A02: Security Misconfiguration",
+            "A03: Software Supply Chain Failures", "A04: Cryptographic Failures",
+            "A05: Injection", "A06: Insecure Design", "A07: Authentication Failures",
+            "A08: Software or Data Integrity Failures", "A09: Security Logging and Alerting Failures",
+            "A10: Mishandling of Exceptional Conditions", "NONE"
+        ]
+
+        categories_type_of_action = [
+            "FIX/PREVENTION", "VULNERABILITY_INTRODUCTION", "N/A"
+        ]
+
+        kappa_owasp_category = cohen_kappa_score(y_humano, y_llm, labels=categorias_owasp)
+        kappa_type_of_action = cohen_kappa_score(y_humano_type_of_action, y_llm_type_of_action, labels=categories_type_of_action)
+        print(f"[batch LLM] Kappa Score Owasp Category: {kappa_owasp_category}")
+        print(f"[batch LLM] Kappa Score Type of Action: {kappa_type_of_action}")
+
     def generate_llm_pilot_prs(self):
         pilot_prs = json.load(open('src/pilot/pilot_prs.json'))
         llm_pilot_prs = []
@@ -19,6 +65,11 @@ class PilotKappaScore:
             print(f"Generating LLM pilot PRs for {pr['context']['pr_id']}")
             llm_pilot_response = self.llm_handler.generate([pr])
             llm_pilot_response_formatted = extract_json_from_response(llm_pilot_response)
+            try:
+                print(f"LLM pilot PR response formatted: {llm_pilot_response_formatted[0]}")
+            except Exception as e:
+                print(f"Error extracting JSON from response: {llm_pilot_response}")
+                continue
             print(f"LLM pilot PR response formatted: {llm_pilot_response_formatted[0]}")
             llm_pilot_prs.append(llm_pilot_response_formatted[0])
         return llm_pilot_prs
@@ -67,10 +118,16 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--create_llm_pilot_prs", action="store_true")
+    parser.add_argument("--create_llm_pilot_prs_batch", action="store_true")
     parser.add_argument("--calculate_kappa_score", action="store_true")
+    parser.add_argument("--calculate_kappa_score_batch", action="store_true")
     args = parser.parse_args()
     kappa_score = PilotKappaScore(model="gemini-2.5-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
     if args.create_llm_pilot_prs:
         kappa_score.create_llm_pilot_prs_file()
+    elif args.create_llm_pilot_prs_batch:
+        kappa_score.create_llm_pilot_prs_file_batch()
     elif args.calculate_kappa_score:
         kappa_score.calculate_kappa_score()
+    elif args.calculate_kappa_score_batch:
+        kappa_score.calculate_kappa_score_batch()

@@ -2,9 +2,21 @@ import time
 
 import google.generativeai as genai
 
-from ..rich_api_log import llm_api_request_spinner, log_llm_api_failure, log_llm_api_success
+from typing import Optional
+
 from ..prompt import PromptRepository
+from ..rich_api_log import llm_api_request_spinner, log_llm_api_failure, log_llm_api_success
 from .base_handler import LLMHandler
+
+
+def _gemini_usage_token_counts(response) -> tuple[Optional[int], Optional[int]]:
+    """Returns (input_tokens, output_tokens) from Gemini usage_metadata, if present."""
+    usage = getattr(response, "usage_metadata", None)
+    if usage is None:
+        return None, None
+    input_tokens = getattr(usage, "prompt_token_count", None)
+    output_tokens = getattr(usage, "candidates_token_count", None)
+    return input_tokens, output_tokens
 
 
 class GeminiHandler(LLMHandler):
@@ -23,15 +35,25 @@ class GeminiHandler(LLMHandler):
         )
 
     def generate(self, user_content: str) -> str:
+        system_text = self.prompt_repository.get_system_prompt() or ""
         user_prompt = self.prompt_repository.get_user_prompt(user_content)
-        prompt_char_count = len(user_prompt)
+        input_char_count = len(system_text) + len(user_prompt)
         t0 = time.perf_counter()
         try:
-            with llm_api_request_spinner("Gemini", self.model_name, prompt_char_count):
+            with llm_api_request_spinner("Gemini", self.model_name, input_char_count):
                 response = self.model.generate_content(user_prompt)
             text = response.text
             elapsed_s = time.perf_counter() - t0
-            log_llm_api_success("Gemini", self.model_name, elapsed_s, len(text))
+            input_tokens, output_tokens = _gemini_usage_token_counts(response)
+            log_llm_api_success(
+                "Gemini",
+                self.model_name,
+                elapsed_s,
+                input_char_count=input_char_count,
+                output_char_count=len(text),
+                input_token_count=input_tokens,
+                output_token_count=output_tokens,
+            )
             return text
         except Exception as e:
             log_llm_api_failure("Gemini", self.model_name, e)

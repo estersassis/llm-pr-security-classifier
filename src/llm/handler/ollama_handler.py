@@ -24,16 +24,28 @@ class OllamaHandler(LLMHandler):
             "format": "json",
             "options": {"temperature": 0.0},
         }
-        prompt_char_count = len(prompt or "") + len(system or "")
+        input_char_count = len(prompt or "") + len(system or "")
         t0 = time.perf_counter()
         try:
-            with llm_api_request_spinner("Ollama", self.model_name, prompt_char_count):
+            with llm_api_request_spinner("Ollama", self.model_name, input_char_count):
                 response = requests.post(self.url, json=payload, timeout=180)
                 response.raise_for_status()
                 response_body = response.json()
             text = response_body.get("response", "") or ""
             elapsed_s = time.perf_counter() - t0
-            log_llm_api_success("Ollama", self.model_name, elapsed_s, len(text))
+            raw_in = response_body.get("prompt_eval_count")
+            raw_out = response_body.get("eval_count")
+            input_tokens = int(raw_in) if raw_in is not None else None
+            output_tokens = int(raw_out) if raw_out is not None else None
+            log_llm_api_success(
+                "Ollama",
+                self.model_name,
+                elapsed_s,
+                input_char_count=input_char_count,
+                output_char_count=len(text),
+                input_token_count=input_tokens,
+                output_token_count=output_tokens,
+            )
             return text
         except Exception as e:
             detail = None

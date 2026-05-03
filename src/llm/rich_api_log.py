@@ -33,11 +33,21 @@ def llm_api_request_spinner(provider: str, model: str, prompt_char_count: int) -
         yield
 
 
+def _fmt_count(value: Optional[int]) -> str:
+    if value is None:
+        return "[dim]n/a[/dim]"
+    return f"[cyan]{value:,}[/cyan]"
+
+
 def log_llm_api_success(
     provider: str,
     model: str,
     duration_s: float,
-    response_char_count: int,
+    *,
+    input_char_count: int,
+    output_char_count: int,
+    input_token_count: Optional[int] = None,
+    output_token_count: Optional[int] = None,
 ) -> None:
     console = _console()
     grid = Table.grid(padding=(0, 2))
@@ -46,7 +56,10 @@ def log_llm_api_success(
     grid.add_row("Provider", provider)
     grid.add_row("Model", model)
     grid.add_row("Duration", f"[bold green]{duration_s:.2f}s[/bold green]")
-    grid.add_row("Response", f"[green]{response_char_count:,}[/green] characters")
+    grid.add_row("Input chars", f"[blue]{input_char_count:,}[/blue]")
+    grid.add_row("Output chars", f"[blue]{output_char_count:,}[/blue]")
+    grid.add_row("Input tokens", _fmt_count(input_token_count))
+    grid.add_row("Output tokens", _fmt_count(output_token_count))
     console.print(
         Panel(
             grid,

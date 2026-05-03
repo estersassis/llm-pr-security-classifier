@@ -1,4 +1,5 @@
 from src.llm.llm_factory import LLMFactory
+from src.llm.rich_api_log import log_llm_orchestration_attempt
 from src.pr_formatter import PRFormatter
 from src.utils import extract_json_from_response
 import os
@@ -151,15 +152,9 @@ class LLMRunner:
 
             while retry_count < max_retries:
                 try:
-                    print(f"  Enviando requisicao para LLM (tentativa {retry_count + 1}/{max_retries})...")
-                    llm_start = time.time()
-
+                    log_llm_orchestration_attempt(retry_count + 1, max_retries)
                     user_content = json.dumps(batch_payload, ensure_ascii=False)
                     raw_response = self.llm_handler.generate(user_content)
-
-                    llm_end = time.time()
-                    llm_time = llm_end - llm_start
-                    print(f"  Requisicao concluida em {llm_time:.1f}s")
                     break
 
                 except requests.exceptions.Timeout:
@@ -369,15 +364,9 @@ class LLMRunner:
 
             while retry_count < max_retries:
                 try:
-                    print(f"  Enviando requisicao para LLM (tentativa {retry_count + 1}/{max_retries})...")
-                    llm_start = time.time()
-
+                    log_llm_orchestration_attempt(retry_count + 1, max_retries)
                     user_content = json.dumps(batch_payload, ensure_ascii=False)
                     raw_response = self.llm_handler.generate(user_content)
-
-                    llm_end = time.time()
-                    llm_time = llm_end - llm_start
-                    print(f"  Requisicao concluida em {llm_time:.1f}s")
                     break
 
                 except requests.exceptions.Timeout:

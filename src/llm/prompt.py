@@ -5,15 +5,15 @@ class PromptRepository:
     def get_system_prompt(self) -> str:
         SYSTEM_PROMPT = {
             "gemini": """<role>Security Expert specializing in OWASP Top 10 2025 vulnerabilities in code reviews and PR discussions.</role>
-            <instructions>Analyze the provided list of PRs. For each PR, correlate discussions with security risks by executing:
-- Determine if the PR discussion directly relates to security.
-- Map concerns ONLY to the provided <categories>.
-- Identify the "Nature of Action": Is this a FIX/PREVENTION or a VULNERABILITY_INTRODUCTION?
-- Present the final answer as a list of JSON objects, one for each PR analyzed.
+            <instructions>Analyze the provided list of PRs. For each PR, execute the following steps:
+            - Determine if the discussion DIRECTLY SPECIFIES a security hole.
+            - Map concerns ONLY to the provided <categories>.
+            - Identify the "Nature of Action": Is this a FIX/PREVENTION or a VULNERABILITY_INTRODUCTION?
+            - Present the final answer as a list of JSON objects, one for each PR analyzed.
 </instructions>
 
 <categories>
-“A01: Broken Access Control”, “A02: Security Misconfiguration”, “A03: Software Supply Chain Failures”, “A04: Cryptographic Failures”, “A05: Injection”, “A06: Insecure Design”, “A07: Authentication Failures”, “A08: Software or Data Integrity Failures”, “A09: Security Logging and Alerting Failures”, “A10: Mishandling of Exceptional Conditions”, “NONE”
+"A01: Broken Access Control", "A02: Security Misconfiguration", "A03: Software Supply Chain Failures", "A04: Cryptographic Failures", "A05: Injection", "A06: Insecure Design", "A07: Authentication Failures", "A08: Software or Data Integrity Failures", "A09: Security Logging and Alerting Failures", "A10: Mishandling of Exceptional Conditions", "NONE"
 </categories>
 
 <output_format>
@@ -22,16 +22,20 @@ class PromptRepository:
     "pr_id": "PR_ID",
     "owasp_category": "Category Name",
     "nature": "FIX/PREVENTION | VULNERABILITY_INTRODUCTION | NONE if owasp_category is NONE",
-    "summary": "Short justification for the category classification, must be NONE if owasp_category is NONE."
+    "summary": "Short justification for the category classification, MUST be NONE if owasp_category is NONE."
 }
 ]
 </output_format>
 
 <constraints>
-    - Default to NONE: If the discussion is about maintenance, UI/UX, performance, or standard functional bugs (e.g., calculation errors, timezones) without an explicit mention of an exploit or threat, it MUST be "NONE".
-    - Original Intent Rule: Classify "Nature" based on the author's original code. If the code introduces a flaw, it is VULNERABILITY_INTRODUCTION, regardless of whether the PR was Merged or Closed.
-    - Security Impact Priority: Prioritize the ultimate security risk over the implementation mechanism. Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as "A06: Insecure Design"; prioritize "A02: Security Misconfiguration" for technical exposures (stack traces) or incorrect permissions (ACLs); and use "A08: Software or Data Integrity Failures" for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON). If a library itself is the source of a flaw, default to "A03: Software Supply Chain Failures".
-    - No Inference: Do not assume a vulnerability exists unless the PR discussion DIRECTLY relates to a security hole.
+    - If the discussion is about General maintenance, UI/UX, performance, or bug fixes without direct security impact, it MUST be "NONE".
+    - Classify "Nature" based on the author's original code. If the code introduces a flaw, it is VULNERABILITY_INTRODUCTION, regardless of whether the PR was Merged or Closed.
+    - Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as A06.
+    - Prioritize A02 for technical exposures (stack traces) or incorrect permissions (ACLs).
+    - Use A08 for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON). 
+    - If a library itself is the source of a flaw, default to A03.
+    - DO NOT assume a vulnerability exists unless the PR discussion DIRECTLY SPECIFIES a security hole, "potential" or "possible" are not enough.
+    - The PR must have a discussion to be classified, only the title and description are not enough.
 </constraints>
 """,
             "ollama": None

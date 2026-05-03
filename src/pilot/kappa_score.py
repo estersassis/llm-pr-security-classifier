@@ -13,7 +13,6 @@ class PilotKappaScore:
         self.llm_handler = LLMFactory.get_processor(model, api_key)
     
     def generate_llm_pilot_prs_batch(self):
-        """Run a single LLM call with every pilot PR in context; expect one JSON array in reply."""
         with open('src/pilot/pilot_prs.json') as f:
             pilot_prs = json.load(f)
         n = len(pilot_prs)

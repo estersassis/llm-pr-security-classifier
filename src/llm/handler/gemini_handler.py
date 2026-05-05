@@ -1,8 +1,8 @@
 import time
-
-import google.generativeai as genai
-
 from typing import Optional
+
+from google import genai
+from google.genai import types
 
 from ..prompt import PromptRepository
 from ..rich_api_log import llm_api_request_spinner, log_llm_api_failure, log_llm_api_success
@@ -21,17 +21,13 @@ def _gemini_usage_token_counts(response) -> tuple[Optional[int], Optional[int]]:
 
 class GeminiHandler(LLMHandler):
     def __init__(self, model_name, api_key):
-        genai.configure(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
         self.model_name = model_name
         self.prompt_repository = PromptRepository(model_name)
-
-        self.model = genai.GenerativeModel(
-            model_name=self.model_name,
+        self._generate_config = types.GenerateContentConfig(
             system_instruction=self.prompt_repository.get_system_prompt(),
-            generation_config={
-                "temperature": 0,
-                "response_mime_type": "application/json",
-            },
+            temperature=0,
+            response_mime_type="application/json",
         )
 
     def generate(self, user_content: str) -> str:
@@ -41,7 +37,11 @@ class GeminiHandler(LLMHandler):
         t0 = time.perf_counter()
         try:
             with llm_api_request_spinner("Gemini", self.model_name, input_char_count):
-                response = self.model.generate_content(user_prompt)
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=user_prompt,
+                    config=self._generate_config,
+                )
             text = response.text
             elapsed_s = time.perf_counter() - t0
             input_tokens, output_tokens = _gemini_usage_token_counts(response)

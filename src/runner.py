@@ -57,6 +57,14 @@ class LLMRunner:
                 flat.append(entry)
         return flat
 
+    def _default_issue_for_pr(self, pr_id):
+        return {
+            "pr_id": pr_id,
+            "owasp_category": "NONE",
+            "nature": "NONE",
+            "summary": "NONE",
+        }
+
     def partial_save(self, results):
         with open(self.output_file_path, "w", encoding="utf-8") as f:
             json.dump(results, f, ensure_ascii=False, indent=4)
@@ -213,7 +221,11 @@ class LLMRunner:
                         pid = item["pr_id"]
                         by_pr.setdefault(pid, []).append(item)
                 batch_results = by_pr
-            elif not isinstance(batch_results, dict):
+            elif isinstance(batch_results, dict):
+                # Garante que PRs enviados, mas nao retornados pela LLM, tenham fallback.
+                for pid in batch_ids:
+                    batch_results.setdefault(pid, [])
+            else:
                 batch_results = None
 
             if batch_results:
@@ -232,13 +244,7 @@ class LLMRunner:
                                 if i.get("pr_id"):
                                     new_issues.append(i)
                         else:
-                            new_issues.append({
-                                "pr_id": pr_id,
-                                "owasp_category": "NONE",
-                                "nature": "N/A",
-                                "summary": "No security findings identified",
-                                "evidence": "",
-                            })
+                            new_issues.append(self._default_issue_for_pr(pr_id))
                 else:
                     print(f"ERRO: Formato inesperado do resultado do batch. Esperado dict ou lista, recebido {type(batch_results)}. Conteudo: {str(batch_results)[:200]}")
                     continue
@@ -425,7 +431,11 @@ class LLMRunner:
                         pid = item["pr_id"]
                         by_pr.setdefault(pid, []).append(item)
                 batch_results = by_pr
-            elif not isinstance(batch_results, dict):
+            elif isinstance(batch_results, dict):
+                # Garante que PRs enviados, mas nao retornados pela LLM, tenham fallback.
+                for pid in batch_ids:
+                    batch_results.setdefault(pid, [])
+            else:
                 batch_results = None
 
             if batch_results and isinstance(batch_results, dict):
@@ -477,13 +487,7 @@ class LLMRunner:
                 normalized = [_ensure_pr_id(issue, pr_id) for issue in (issues or [])]
                 normalized = [i for i in normalized if i]
                 if not normalized:
-                    normalized = [{
-                        "pr_id": pr_id,
-                        "owasp_category": "NONE",
-                        "nature": "N/A",
-                        "summary": "No security findings identified",
-                        "evidence": "",
-                    }]
+                    normalized = [self._default_issue_for_pr(pr_id)]
                 if pr_id in by_pr:
                     by_pr[pr_id] = normalized
                     updated_count += 1

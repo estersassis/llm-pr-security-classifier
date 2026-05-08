@@ -72,3 +72,5 @@ dmypy.json
 # Folder to ignore
 comments/
 django/
+
+.env

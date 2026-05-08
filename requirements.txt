@@ -1,4 +1,5 @@
 pytest
+google-genai>=1.0.0
 rich>=13.0.0
 openpyxl>=3.0.0
 requests
@@ -8,7 +9,9 @@ matplotlib
 scipy
 black
 flake8
+dotenv
 # Additional requirements for optimized async processing
 aiohttp>=3.8.0
 aiofiles>=22.1.0
 psutil>=5.9.0  # For system resource monitoring
+scikit-learn

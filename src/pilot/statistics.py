@@ -1,4 +1,9 @@
-from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import (
+    accuracy_score,
+    cohen_kappa_score,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
 import json
 import os
 from dotenv import load_dotenv
@@ -56,6 +61,22 @@ class PilotKappaScore:
         kappa_type_of_action = cohen_kappa_score(y_humano_type_of_action, y_llm_type_of_action, labels=categories_type_of_action)
         print(f"[batch LLM] Kappa Score Owasp Category: {kappa_owasp_category}")
         print(f"[batch LLM] Kappa Score Type of Action: {kappa_type_of_action}")
+        self._print_classification_stats(
+            y_true=y_humano,
+            y_pred=y_llm,
+            labels=categorias_owasp,
+            title="[batch LLM] Owasp Category",
+            positive_label="NONE",
+            positive_is_match=False,
+        )
+        self._print_classification_stats(
+            y_true=y_humano_type_of_action,
+            y_pred=y_llm_type_of_action,
+            labels=categories_type_of_action,
+            title="[batch LLM] Type of Action",
+            positive_label="N/A",
+            positive_is_match=False,
+        )
 
     def generate_llm_pilot_prs(self):
         pilot_prs = json.load(open('src/pilot/pilot_prs.json'))
@@ -111,6 +132,56 @@ class PilotKappaScore:
         kappa_type_of_action = cohen_kappa_score(y_humano_type_of_action, y_llm_type_of_action, labels=categories_type_of_action)
         print(f"Kappa Score Owasp Category: {kappa_owasp_category}")
         print(f"Kappa Score Type of Action: {kappa_type_of_action}")
+        self._print_classification_stats(
+            y_true=y_humano,
+            y_pred=y_llm,
+            labels=categorias_owasp,
+            title="Owasp Category",
+            positive_label="NONE",
+            positive_is_match=False,
+        )
+        self._print_classification_stats(
+            y_true=y_humano_type_of_action,
+            y_pred=y_llm_type_of_action,
+            labels=categories_type_of_action,
+            title="Type of Action",
+            positive_label="N/A",
+            positive_is_match=False,
+        )
+
+    def _print_classification_stats(self, y_true, y_pred, labels, title, positive_label, positive_is_match=True):
+        accuracy = accuracy_score(y_true, y_pred)
+        precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(
+            y_true,
+            y_pred,
+            labels=labels,
+            average="macro",
+            zero_division=0,
+        )
+        conf_matrix = confusion_matrix(y_true, y_pred, labels=labels)
+
+        if positive_is_match:
+            y_true_positive = [value == positive_label for value in y_true]
+            y_pred_positive = [value == positive_label for value in y_pred]
+        else:
+            y_true_positive = [value != positive_label for value in y_true]
+            y_pred_positive = [value != positive_label for value in y_pred]
+
+        tn, fp, fn, tp = confusion_matrix(
+            y_true_positive,
+            y_pred_positive,
+            labels=[False, True],
+        ).ravel()
+
+        print(f"\n{title} - Classification Stats")
+        print(f"Accuracy: {accuracy:.4f}")
+        print(f"Macro Precision: {precision_macro:.4f}")
+        print(f"Macro Recall: {recall_macro:.4f}")
+        print(f"Macro F1: {f1_macro:.4f}")
+        print(f"Binary TP: {tp} | FP: {fp} | FN: {fn} | TN: {tn}")
+        print("Confusion Matrix (rows=true, cols=pred):")
+        print("Labels order:", labels)
+        print(conf_matrix)
 
 # depending on the arguments call the appropriate method
 if __name__ == "__main__":
@@ -121,7 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--calculate_kappa_score", action="store_true")
     parser.add_argument("--calculate_kappa_score_batch", action="store_true")
     args = parser.parse_args()
-    kappa_score = PilotKappaScore(model="gemini-2.5-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
+    kappa_score = PilotKappaScore(model="gemini-3.1-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
     if args.create_llm_pilot_prs:
         kappa_score.create_llm_pilot_prs_file()
     elif args.create_llm_pilot_prs_batch:

@@ -4,8 +4,12 @@ class PromptRepository:
 
     def get_system_prompt(self) -> str:
         SYSTEM_PROMPT = {
-            "gemini": """<role>Security Expert specializing in OWASP Top 10 2025 vulnerabilities in code reviews and PR discussions.</role>
-            <instructions>Analyze the provided list of PRs. For each PR, execute the following steps:
+            "gemini": """<role>
+You are a security expert specializing in OWASP Top 10 2025 vulnerabilities in code reviews and PR discussions. 
+</role>
+
+<instructions>
+Analyze the provided list of PRs. For each PR, execute the following steps:
             - Determine if the discussion DIRECTLY SPECIFIES a security hole.
             - Map concerns ONLY to the provided <categories>.
             - Identify the "Nature of Action": Is this a FIX/PREVENTION or a VULNERABILITY_INTRODUCTION?
@@ -17,25 +21,19 @@ class PromptRepository:
 </categories>
 
 <output_format>
-[
-{
+Return a JSON list:
+[{
     "pr_id": "PR_ID",
     "owasp_category": "Category Name",
     "nature": "FIX/PREVENTION | VULNERABILITY_INTRODUCTION | NONE if owasp_category is NONE",
     "summary": "Short justification for the category classification, MUST be NONE if owasp_category is NONE."
-}
-]
+}]
 </output_format>
 
 <constraints>
-    - If the discussion is about General maintenance, UI/UX, performance, or bug fixes without direct security impact, it MUST be "NONE".
-    - Classify "Nature" based on the author's original code. If the code introduces a flaw, it is VULNERABILITY_INTRODUCTION, regardless of whether the PR was Merged or Closed.
-    - Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as A06.
-    - Prioritize A02 for technical exposures (stack traces) or incorrect permissions (ACLs).
-    - Use A08 for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON). 
-    - If a library itself is the source of a flaw, default to A03.
-    - DO NOT assume a vulnerability exists unless the PR discussion DIRECTLY SPECIFIES a security hole, "potential" or "possible" are not enough.
     - The PR must have a discussion to be classified, only the title and description are not enough.
+    - Prioritize the ultimate security risk over the implementation mechanism. Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as "A06: Insecure Design"; prioritize "A02: Security Misconfiguration" for technical exposures (stack traces) or incorrect permissions (ACLs); and use "A08: Software or Data Integrity Failures" for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON).
+    - If no security issues are found, return "NONE" for owasp_category, nature and summary, but the PR must be classified.
 </constraints>
 """,
             "ollama": None

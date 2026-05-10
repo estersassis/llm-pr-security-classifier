@@ -1233,25 +1233,12 @@
         "context": {
             "repository": "django/django",
             "pr_id": "PR_TEST_050",
-            "title": "Docs: Clarify ordering behavior of QuerySet.first() in documentation",
-            "state": "MERGED",
-            "is_merged": true
+            "title": "Feat: Adjust security settings for the Django Admin",
+            "state": "OPEN",
+            "is_merged": false
         },
-        "description": "Updates the documentation to clarify that QuerySet.first() will apply an implicit ordering by primary key when no explicit ordering is defined, and recommends explicitly defining ordering for deterministic results.",
-        "general_discussion": [
-            "This confused a few users who expected first() to be unordered.",
-            "Added an example comparing first() with and without explicit order_by().",
-            "Also included a note about database-specific default ordering.",
-            "This is documentation-only, no code changes."
-        ],
-        "code_review_threads": [
-            {
-                "scope": "docs/ref/models/querysets.txt",
-                "comments": [
-                    "The added example improves clarity. Thanks.",
-                    "Nit: maybe link to the order_by() documentation directly."
-                ]
-            }
-        ]
+        "description": "Adjusts the security settings for the Django Admin to improve the security of the admin interface.",
+        "general_discussion": [],
+        "code_review_threads": []
     }
 ]

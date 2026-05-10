@@ -10,8 +10,12 @@ from dotenv import load_dotenv
 load_dotenv()
 from src.llm.llm_factory import LLMFactory
 from src.utils import extract_json_from_response
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
-class PilotKappaScore:
+
+class PilotStatistics:
     def __init__(self, model, api_key):
         self.model = model
         self.api_key = api_key
@@ -39,7 +43,7 @@ class PilotKappaScore:
         with open('src/pilot/pilot_llm_batch.json', 'w') as f:
             json.dump(llm_pilot_prs, f)
 
-    def calculate_kappa_score_batch(self):
+    def calculate_statistics_batch(self):
         y_humano = self.extract_categories('src/pilot/pilot_human.json')
         y_llm = self.extract_categories('src/pilot/pilot_llm_batch.json')
         y_humano_type_of_action = self.extract_type_of_action('src/pilot/pilot_human.json')
@@ -109,7 +113,7 @@ class PilotKappaScore:
             dados = json.load(f)
         return [item['nature'] for item in sorted(dados, key=lambda x: x['pr_id'])]
     
-    def calculate_kappa_score(self):
+    def calculate_statistics(self):
         y_humano = self.extract_categories('src/pilot/pilot_human.json')
         y_llm = self.extract_categories('src/pilot/pilot_llm.json')
         y_humano_type_of_action = self.extract_type_of_action('src/pilot/pilot_human.json')
@@ -159,6 +163,16 @@ class PilotKappaScore:
             zero_division=0,
         )
         conf_matrix = confusion_matrix(y_true, y_pred, labels=labels)
+        # pegar só A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, NONE
+        labels_simplified = [label.split(":")[0] for label in labels]
+        plt.figure(figsize=(10, 10))
+        sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels_simplified, yticklabels=labels_simplified)
+        plt.title(f"{title} - Confusion Matrix")
+        plt.xlabel("Predicted")
+        plt.ylabel("True")
+        plt.savefig(f"src/pilot/plots/{title}.png")
+        plt.close()
+        print(f"Confusion matrix plot saved to {title}.png")
 
         if positive_is_match:
             y_true_positive = [value == positive_label for value in y_true]
@@ -189,15 +203,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--create_llm_pilot_prs", action="store_true")
     parser.add_argument("--create_llm_pilot_prs_batch", action="store_true")
-    parser.add_argument("--calculate_kappa_score", action="store_true")
-    parser.add_argument("--calculate_kappa_score_batch", action="store_true")
+    parser.add_argument("--calculate_statistics", action="store_true")
+    parser.add_argument("--calculate_statistics_batch", action="store_true")
     args = parser.parse_args()
-    kappa_score = PilotKappaScore(model="gemini-3.1-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
+    statistics = PilotStatistics(model="gemini-3.1-flash-lite", api_key=os.getenv("GEMINI_API_KEY"))
     if args.create_llm_pilot_prs:
-        kappa_score.create_llm_pilot_prs_file()
+        statistics.create_llm_pilot_prs_file()
     elif args.create_llm_pilot_prs_batch:
-        kappa_score.create_llm_pilot_prs_file_batch()
-    elif args.calculate_kappa_score:
-        kappa_score.calculate_kappa_score()
-    elif args.calculate_kappa_score_batch:
-        kappa_score.calculate_kappa_score_batch()
+        statistics.create_llm_pilot_prs_file_batch()
+    elif args.calculate_statistics:
+        statistics.calculate_statistics()
+    elif args.calculate_statistics_batch:
+        statistics.calculate_statistics_batch()

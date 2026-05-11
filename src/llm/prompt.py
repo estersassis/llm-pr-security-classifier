@@ -31,9 +31,14 @@ Return a JSON list:
 </output_format>
 
 <constraints>
+    - If the discussion is about General maintenance, UI/UX, performance, or bug fixes without direct security impact, it MUST be "NONE".
+    - Classify "Nature" based on the author's original code. If the code introduces a flaw, it is VULNERABILITY_INTRODUCTION, regardless of whether the PR was Merged or Closed.
+    - Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as A06.
+    - Prioritize A02 for technical exposures (stack traces) or incorrect permissions (ACLs).
+    - Use A08 for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON). 
+    - If a library itself is the source of a flaw, default to A03.
+    - DO NOT assume a vulnerability exists unless the PR discussion DIRECTLY SPECIFIES a security hole, "potential" or "possible" are not enough.
     - The PR must have a discussion to be classified, only the title and description are not enough.
-    - Prioritize the ultimate security risk over the implementation mechanism. Classify fundamental logic flaws (e.g., security questions, MFA bypasses) as "A06: Insecure Design"; prioritize "A02: Security Misconfiguration" for technical exposures (stack traces) or incorrect permissions (ACLs); and use "A08: Software or Data Integrity Failures" for any lack of verification regarding untrusted data, headers, signatures, or deserialization (Pickle/JSON).
-    - If no security issues are found, return "NONE" for owasp_category, nature and summary, but the PR must be classified.
 </constraints>
 """,
             "ollama": None

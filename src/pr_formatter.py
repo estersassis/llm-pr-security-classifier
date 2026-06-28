@@ -22,7 +22,6 @@ class PRFormatter:
     seguindo as diretrizes de contexto e estrutura do PRIMES.
     """
     # 1. Metadados de Contexto (Essencial para reduzir alucinações)
-    # Fonte: Framework PRIMES - Seção III-A [cite: 298]
     context = {
         "repository": input_data.get("base_repository", "unknown"),
         "pr_id": input_data.get("id"),
@@ -46,8 +45,6 @@ class PRFormatter:
         if typename == "IssueComment":
             body = item.get("body", "").strip()
             if body:
-                # Dica: Se o comentário for muito longo (logs), 
-                # pode ser útil truncar ou extrair apenas trechos chave.
                 general_discussion.append(body)
 
         # Coleta revisões específicas de código (Review Threads)

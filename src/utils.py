@@ -3,7 +3,7 @@ import json
 
 
 def _repair_llm_json_invalid_escapes(text: str) -> str:
-    """JSON allows no \\' escape; models often emit it inside summaries (e.g. SQL snippets)."""
+    # Repair invalid JSON escape sequences
     return re.sub(r"(?<![\\])\\'", "'", text)
 
 

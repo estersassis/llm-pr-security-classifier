@@ -131,7 +131,7 @@ class PilotStatistics:
             "FIX/PREVENTION", "VULNERABILITY_INTRODUCTION", "N/A"
         ]
 
-        # O cálculo permanece o mesmo, o sklearn trata a multiclasse internamente
+
         kappa_owasp_category = cohen_kappa_score(y_humano, y_llm, labels=categorias_owasp)
         kappa_type_of_action = cohen_kappa_score(y_humano_type_of_action, y_llm_type_of_action, labels=categories_type_of_action)
         print(f"Kappa Score Owasp Category: {kappa_owasp_category}")
